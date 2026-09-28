@@ -1,7 +1,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token::{mint_to, Mint, MintTo, Token, TokenAccount},
+    token::{Mint, Token, TokenAccount},
 };
 use mpl_core::{
     accounts::{BaseAssetV1, BaseCollectionV1},
@@ -16,6 +16,7 @@ use mpl_core::{
 use crate::{
     constants::*,
     error::StakeError,
+    rewards::mint_rewards,
     state::{StakeAccount, StakeConfig},
 };
 
@@ -77,10 +78,16 @@ impl<'info> Unstake<'info> {
         let now = Clock::get()?.unix_timestamp;
 
         // pay out whatever piled up since the last claim
-        let owed = self.stake_account.rewards_owed(now, self.config.points_per_day);
-        if owed > 0 {
-            self.mint_rewards(owed)?;
-        }
+        let owed = self
+            .stake_account
+            .rewards_owed(now, self.config.points_per_day);
+        mint_rewards(
+            &self.config,
+            &self.reward_mint,
+            &self.owner_rewards,
+            &self.token_program,
+            owed,
+        )?;
 
         // the stake pda is the freeze delegate, so it has to sign these two
         let asset_key = self.asset.key();
@@ -127,22 +134,4 @@ impl<'info> Unstake<'info> {
         Ok(())
     }
 
-    fn mint_rewards(&self, amount: u64) -> Result<()> {
-        let collection_key = self.config.collection;
-        let signer_seeds: &[&[&[u8]]] =
-            &[&[CONFIG_SEED, collection_key.as_ref(), &[self.config.bump]]];
-
-        mint_to(
-            CpiContext::new_with_signer(
-                self.token_program.to_account_info(),
-                MintTo {
-                    mint: self.reward_mint.to_account_info(),
-                    to: self.owner_rewards.to_account_info(),
-                    authority: self.config.to_account_info(),
-                },
-                signer_seeds,
-            ),
-            amount,
-        )
-    }
 }

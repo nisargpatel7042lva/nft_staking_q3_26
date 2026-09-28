@@ -1,6 +1,7 @@
 pub mod constants;
 pub mod error;
 pub mod instructions;
+pub mod rewards;
 pub mod state;
 
 use anchor_lang::prelude::*;
@@ -32,6 +33,11 @@ pub mod nft_staking {
 
     // unlock the nft and take the rewards with it
     pub fn unstake(ctx: Context<Unstake>) -> Result<()> {
+        ctx.accounts.handler()
+    }
+
+    // take the rewards but leave the nft staked and frozen
+    pub fn claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
         ctx.accounts.handler()
     }
 }

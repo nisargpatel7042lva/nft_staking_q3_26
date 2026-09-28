@@ -7,6 +7,7 @@
 #![allow(dead_code)]
 
 pub mod core;
+pub mod staking;
 
 use {
     anchor_lang::{InstructionData, ToAccountMetas},
