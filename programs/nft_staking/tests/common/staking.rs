@@ -141,3 +141,71 @@ pub fn extra_asset(env: &mut Env, s: &Staked) -> Staked {
         asset,
     }
 }
+
+pub fn oracle_pda(collection: &SvmKey) -> SvmKey {
+    let (key, _) = CoreKey::find_program_address(
+        &[b"oracle", to_core_key(*collection).as_ref()],
+        &nft_staking::ID,
+    );
+    to_svm_key(key)
+}
+
+pub fn vault_pda(collection: &SvmKey) -> SvmKey {
+    let (key, _) = CoreKey::find_program_address(
+        &[b"vault", to_core_key(*collection).as_ref()],
+        &nft_staking::ID,
+    );
+    to_svm_key(key)
+}
+
+pub fn init_oracle_ix(s: &Staked, admin: &SvmKey, funding: u64) -> SvmIx {
+    program_ix(
+        nft_staking::accounts::InitializeOracle {
+            authority: to_core_key(*admin),
+            collection: to_core_key(s.collection),
+            oracle: to_core_key(oracle_pda(&s.collection)),
+            vault: to_core_key(vault_pda(&s.collection)),
+            mpl_core_program: mpl_core::ID,
+            system_program: anchor_lang::system_program::ID,
+        },
+        nft_staking::instruction::InitializeOracle {
+            vault_funding: funding,
+        },
+    )
+}
+
+pub fn update_oracle_ix(s: &Staked, cranker: &SvmKey) -> SvmIx {
+    program_ix(
+        nft_staking::accounts::UpdateOracle {
+            cranker: to_core_key(*cranker),
+            collection: to_core_key(s.collection),
+            oracle: to_core_key(oracle_pda(&s.collection)),
+            vault: to_core_key(vault_pda(&s.collection)),
+            system_program: anchor_lang::system_program::ID,
+        },
+        nft_staking::instruction::UpdateOracle {},
+    )
+}
+
+pub fn transfer_nft_ix(s: &Staked, new_owner: &SvmKey) -> SvmIx {
+    program_ix(
+        nft_staking::accounts::TransferNft {
+            owner: to_core_key(s.user.pubkey()),
+            asset: to_core_key(s.asset),
+            collection: to_core_key(s.collection),
+            new_owner: to_core_key(*new_owner),
+            oracle: to_core_key(oracle_pda(&s.collection)),
+            mpl_core_program: mpl_core::ID,
+            system_program: anchor_lang::system_program::ID,
+        },
+        nft_staking::instruction::TransferNft {},
+    )
+}
+
+// moves the clock to a given hour of the day (UTC), keeping the same day
+pub fn set_hour(env: &mut Env, hour: i64, minute: i64) {
+    let mut clock = env.svm.get_sysvar::<solana_clock::Clock>();
+    let day_start = clock.unix_timestamp - clock.unix_timestamp.rem_euclid(86_400);
+    clock.unix_timestamp = day_start + hour * 3600 + minute * 60;
+    env.svm.set_sysvar::<solana_clock::Clock>(&clock);
+}
