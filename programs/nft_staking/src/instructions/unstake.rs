@@ -131,6 +131,23 @@ impl<'info> Unstake<'info> {
         )
         .invoke()?;
 
+        // and the burn delegate we added when staking
+        RemovePluginV1Cpi::new(
+            &self.mpl_core_program.to_account_info(),
+            RemovePluginV1CpiAccounts {
+                asset: &self.asset.to_account_info(),
+                collection: Some(&self.collection.to_account_info()),
+                payer: &self.owner.to_account_info(),
+                authority: Some(&self.owner.to_account_info()),
+                system_program: &self.system_program.to_account_info(),
+                log_wrapper: None,
+            },
+            RemovePluginV1InstructionArgs {
+                plugin_type: PluginType::BurnDelegate,
+            },
+        )
+        .invoke()?;
+
         Ok(())
     }
 

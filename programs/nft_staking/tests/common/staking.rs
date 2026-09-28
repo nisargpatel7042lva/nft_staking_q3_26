@@ -109,3 +109,22 @@ pub fn unstake_ix(s: &Staked) -> SvmIx {
     )
 }
 
+
+pub fn burn_ix(s: &Staked) -> SvmIx {
+    program_ix(
+        nft_staking::accounts::BurnStakedNft {
+            owner: to_core_key(s.user.pubkey()),
+            asset: to_core_key(s.asset),
+            collection: to_core_key(s.collection),
+            config: to_core_key(s.config),
+            stake_account: to_core_key(stake_pda(&s.asset)),
+            reward_mint: to_core_key(s.reward_mint),
+            owner_rewards: to_core_key(reward_ata(&s.user.pubkey(), &s.reward_mint)),
+            mpl_core_program: mpl_core::ID,
+            token_program: anchor_spl::token::ID,
+            associated_token_program: anchor_spl::associated_token::ID,
+            system_program: anchor_lang::system_program::ID,
+        },
+        nft_staking::instruction::BurnStakedNft {},
+    )
+}

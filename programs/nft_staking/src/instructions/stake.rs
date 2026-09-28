@@ -2,7 +2,7 @@ use anchor_lang::prelude::*;
 use mpl_core::{
     accounts::{BaseAssetV1, BaseCollectionV1},
     instructions::{AddPluginV1Cpi, AddPluginV1CpiAccounts, AddPluginV1InstructionArgs},
-    types::{FreezeDelegate, Plugin, PluginAuthority},
+    types::{BurnDelegate, FreezeDelegate, Plugin, PluginAuthority},
     ID as MPL_CORE_ID,
 };
 
@@ -78,6 +78,28 @@ impl<'info> Stake<'info> {
             },
             AddPluginV1InstructionArgs {
                 plugin: Plugin::FreezeDelegate(FreezeDelegate { frozen: true }),
+                init_authority: Some(PluginAuthority::Address {
+                    address: self.stake_account.key(),
+                }),
+            },
+        )
+        .invoke()?;
+
+        // Also make the stake pda the burn delegate. The user does not have to
+        // use it, but it is what lets burn_staked_nft destroy the nft later
+        // without the user having to hand over the asset first.
+        AddPluginV1Cpi::new(
+            &self.mpl_core_program.to_account_info(),
+            AddPluginV1CpiAccounts {
+                asset: &self.asset.to_account_info(),
+                collection: Some(&self.collection.to_account_info()),
+                payer: &self.owner.to_account_info(),
+                authority: Some(&self.owner.to_account_info()),
+                system_program: &self.system_program.to_account_info(),
+                log_wrapper: None,
+            },
+            AddPluginV1InstructionArgs {
+                plugin: Plugin::BurnDelegate(BurnDelegate {}),
                 init_authority: Some(PluginAuthority::Address {
                     address: self.stake_account.key(),
                 }),

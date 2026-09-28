@@ -142,3 +142,15 @@ pub fn asset_owner(env: &Env, asset: &SvmKey) -> SvmKey {
     let data = account_data(env, asset);
     to_svm_key(BaseAssetV1::from_bytes(&data).unwrap().owner)
 }
+
+// After a core burn the account is not deleted, it is shrunk to a single byte
+// holding Key::Uninitialized. So "is it burned" means "is it still an asset".
+pub fn is_burned(env: &Env, asset: &SvmKey) -> bool {
+    match env.svm.get_account(asset) {
+        None => true,
+        Some(account) => account.data.first().copied().unwrap_or(0) != KEY_ASSET_V1,
+    }
+}
+
+// mpl_core::types::Key::AssetV1 as a raw byte
+const KEY_ASSET_V1: u8 = 1;

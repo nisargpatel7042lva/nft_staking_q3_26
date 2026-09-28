@@ -40,4 +40,9 @@ pub mod nft_staking {
     pub fn claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
         ctx.accounts.handler()
     }
+
+    // destroy the nft for a big one time bonus
+    pub fn burn_staked_nft(ctx: Context<BurnStakedNft>) -> Result<()> {
+        ctx.accounts.handler()
+    }
 }
