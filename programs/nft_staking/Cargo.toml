@@ -1,0 +1,40 @@
+[package]
+name = "nft_staking"
+version = "0.1.0"
+description = "NFT staking on Metaplex Core"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "nft_staking"
+
+[features]
+default = []
+cpi = ["no-entrypoint"]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
+anchor-debug = []
+custom-heap = []
+custom-panic = []
+
+[dependencies]
+anchor-lang = { version = "=0.32.1", features = ["init-if-needed"] }
+anchor-spl = "=0.32.1"
+mpl-core = { version = "0.12.1", default-features = false, features = ["anchor-0-32"] }
+
+[dev-dependencies]
+litesvm = "0.10"
+litesvm-token = "0.10"
+solana-keypair = "3"
+solana-signer = "3"
+solana-message = "3"
+solana-transaction = "3"
+solana-pubkey = "4"
+solana-instruction = "3"
+solana-account = "3"
+solana-clock = "3"
+
+[lints.rust]
+unexpected_cfgs = { level = "warn", check-cfg = ['cfg(target_os, values("solana"))'] }
