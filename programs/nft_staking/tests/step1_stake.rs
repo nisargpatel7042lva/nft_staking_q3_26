@@ -23,6 +23,7 @@ fn test_initialize_config() {
             collection: to_core_key(collection),
             config: to_core_key(config),
             reward_mint: to_core_key(reward_mint),
+            mpl_core_program: mpl_core::ID,
             token_program: anchor_spl::token::ID,
             system_program: anchor_lang::system_program::ID,
         },

@@ -7,6 +7,7 @@ use mpl_core::{
 };
 
 use crate::{
+    attributes::increment_total_staked,
     constants::*,
     error::StakeError,
     state::{StakeAccount, StakeConfig},
@@ -106,6 +107,15 @@ impl<'info> Stake<'info> {
             },
         )
         .invoke()?;
+
+        // one more nft staked in this collection
+        increment_total_staked(
+            &self.collection.to_account_info(),
+            &self.owner.to_account_info(),
+            &self.config,
+            &self.system_program.to_account_info(),
+            &self.mpl_core_program.to_account_info(),
+        )?;
 
         Ok(())
     }

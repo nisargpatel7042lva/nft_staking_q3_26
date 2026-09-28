@@ -10,4 +10,6 @@ pub enum StakeError {
     Overflow,
     #[msg("Nothing to claim yet")]
     NothingToClaim,
+    #[msg("The collection has no Attributes plugin")]
+    MissingAttributes,
 }

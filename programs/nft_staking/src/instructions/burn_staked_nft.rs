@@ -14,6 +14,7 @@ use mpl_core::{
 };
 
 use crate::{
+    attributes::decrement_total_staked,
     constants::*,
     error::StakeError,
     rewards::mint_rewards,
@@ -135,6 +136,15 @@ impl<'info> BurnStakedNft<'info> {
             },
         )
         .invoke_signed(signer_seeds)?;
+
+        // one less nft staked in this collection
+        decrement_total_staked(
+            &self.collection.to_account_info(),
+            &self.owner.to_account_info(),
+            &self.config,
+            &self.system_program.to_account_info(),
+            &self.mpl_core_program.to_account_info(),
+        )?;
 
         Ok(())
     }

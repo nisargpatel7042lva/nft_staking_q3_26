@@ -154,3 +154,15 @@ pub fn is_burned(env: &Env, asset: &SvmKey) -> bool {
 
 // mpl_core::types::Key::AssetV1 as a raw byte
 const KEY_ASSET_V1: u8 = 1;
+
+// reads the "total_staked" counter off the collection's Attributes plugin
+pub fn total_staked(env: &Env, collection: &SvmKey) -> Option<u64> {
+    match collection_plugin(env, collection, PluginType::Attributes) {
+        Some((_, Plugin::Attributes(attrs))) => attrs
+            .attribute_list
+            .iter()
+            .find(|a| a.key == "total_staked")
+            .and_then(|a| a.value.parse::<u64>().ok()),
+        _ => None,
+    }
+}

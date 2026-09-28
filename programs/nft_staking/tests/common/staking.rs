@@ -51,6 +51,7 @@ pub fn setup_staking(env: &mut Env) -> Staked {
             collection: to_core_key(collection),
             config: to_core_key(config),
             reward_mint: to_core_key(reward_mint),
+            mpl_core_program: mpl_core::ID,
             token_program: anchor_spl::token::ID,
             system_program: anchor_lang::system_program::ID,
         },
@@ -127,4 +128,16 @@ pub fn burn_ix(s: &Staked) -> SvmIx {
         },
         nft_staking::instruction::BurnStakedNft {},
     )
+}
+
+// a second (third, ...) nft in the same collection, staked by the same user
+pub fn extra_asset(env: &mut Env, s: &Staked) -> Staked {
+    let asset = create_asset(env, &s.collection, &s.user.pubkey()).pubkey();
+    Staked {
+        collection: s.collection,
+        config: s.config,
+        reward_mint: s.reward_mint,
+        user: s.user.insecure_clone(),
+        asset,
+    }
 }
